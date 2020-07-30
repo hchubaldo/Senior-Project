@@ -12,7 +12,6 @@ import scipy.stats
 #        temp.write(line)
 #temp.close()
 
-
 phylum_coList = ['phylum_Actinobacteria', 'phylum_Bacteroidetes', 'phylum_Firmicutes', 'phylum_Proteobacteria',	'phylum_Verrucomicrobia', 'phylum_unclassified_Bacteria']
 class_coList = ['class_Actinobacteria',	'class_Bacilli', 'class_Bacteroidia', 'class_Betaproteobacteria', 'class_Clostridia', 'class_Deltaproteobacteria', 'class_Erysipelotrichia', 'class_Gammaproteobacteria', 'class_Negativicutes', 'class_Verrucomicrobiae', 'class_unclassified_Bacteria', 'class_unclassified_Firmicutes']
 order_coList = ['order_Bacteroidales', 'order_Burkholderiales',	'order_Clostridiales', 'order_Coriobacteriales', 'order_Desulfovibrionales', 'order_Enterobacteriales',	'order_Erysipelotrichales',	'order_Lactobacillales', 'order_Selenomonadales', 'order_Verrucomicrobiales', 'order_unclassified_Bacteria', 'order_unclassified_Firmicutes']
@@ -25,4 +24,9 @@ order_df = pd.read_csv ("gut_16s_abundance.csv", usecols = order_coList)
 family_df = pd.read_csv ("gut_16s_abundance.csv", usecols = family_coList)
 genus_df = pd.read_csv ("gut_16s_abundance.csv", usecols = genus_coList)
 
-print(phylum_df["phylum_Actinobacteria"])
+#correlation test for each data frame
+print(phylum_df.corr(method = 'pearson'))
+print(class_df.corr(method = 'pearson'))
+print(order_df.corr(method = 'pearson'))
+print(family_df.corr(method = 'pearson'))
+print(genus_df.corr(method = 'pearson'))
