@@ -162,11 +162,15 @@ def main():
         # Use to name columns in new dataframe
         df_corr.columns = CORR_COLUMS
 
-        # P value formaula from documentation in scipy
-        df_corr['p_value'] = 2*dist.cdf(-abs(df_corr['Correlation']))
+        # P value formula from documentation in scipy
+        df_corr['P_Value'] = 2*dist.cdf(-abs(df_corr['Correlation']))
 
-        # Adjusted P value
-        df_corr['adjusted_p_value'] = statsmodels.stats.multitest.multipletests(df_corr['p_value'], alpha=0.05, method='bonferroni', is_sorted=False, returnsorted=False)
+        # Adjusted P value and Rejection (true for hypothesis that can be rejected for given alpha)
+        adjusted_pvalue = []
+        adjusted_pvalue = statsmodels.stats.multitest.multipletests(df_corr['P_Value'], alpha=0.05, method='bonferroni', is_sorted=False, returnsorted=False)
+        
+        df_corr['Adjusted_P_Value'] = adjusted_pvalue[1]
+        df_corr['Rejection'] = adjusted_pvalue[0]
 
         print(df_corr)
 
