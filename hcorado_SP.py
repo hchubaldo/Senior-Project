@@ -1,32 +1,175 @@
+import scipy.stats
+import statsmodels.stats.multitest
+
 import pandas as pd
 import numpy as np
-import scipy.stats
 
-#read_file = pd.read_csv (r'C:\Users\admin\Dropbox\Bioinformatics\Senior Project\gut_16s_abundance.txt')
-#read_file.to_csv (r'C:\Users\admin\Dropbox\Bioinformatics\Senior Project\gut_16s_abundance.csv', index = None)
 
-#temp = open("gut_16s_abundance.csv", "w")
-#with open("gut_16s_abundance.txt") as x:
-#    for line in x:
-#        line = line.replace("\t", ",")
-#        temp.write(line)
-#temp.close()
+###############################################################################
+# Set Pandas options
+###############################################################################
 
-phylum_coList = ['phylum_Actinobacteria', 'phylum_Bacteroidetes', 'phylum_Firmicutes', 'phylum_Proteobacteria',	'phylum_Verrucomicrobia', 'phylum_unclassified_Bacteria']
-class_coList = ['class_Actinobacteria',	'class_Bacilli', 'class_Bacteroidia', 'class_Betaproteobacteria', 'class_Clostridia', 'class_Deltaproteobacteria', 'class_Erysipelotrichia', 'class_Gammaproteobacteria', 'class_Negativicutes', 'class_Verrucomicrobiae', 'class_unclassified_Bacteria', 'class_unclassified_Firmicutes']
-order_coList = ['order_Bacteroidales', 'order_Burkholderiales',	'order_Clostridiales', 'order_Coriobacteriales', 'order_Desulfovibrionales', 'order_Enterobacteriales',	'order_Erysipelotrichales',	'order_Lactobacillales', 'order_Selenomonadales', 'order_Verrucomicrobiales', 'order_unclassified_Bacteria', 'order_unclassified_Firmicutes']
-family_coList = ['family_Acidaminococcaceae', 'family_Bacteroidaceae', 'family_Clostridiaceae.1', 'family_Clostridiales_Incertae.Sedis.XIII', 'family_Coriobacteriaceae', 'family_Desulfovibrionaceae',	'family_Enterobacteriaceae', 'family_Erysipelotrichaceae', 'family_Lachnospiraceae', 'family_Peptostreptococcaceae', 'family_Porphyromonadaceae', 'family_Prevotellaceae', 'family_Rikenellaceae', 'family_Ruminococcaceae', 'family_Streptococcaceae', 'family_Sutterellaceae', 'family_Veillonellaceae', 'family_Verrucomicrobiaceae', 'family_unclassified_Bacteria', 'family_unclassified_Clostridiales', 'family_unclassified_Firmicutes']
-genus_coList = ['genus_Akkermansia', 'genus_Alistipes', 'genus_Anaerotruncus', 'genus_Anaerovorax', 'genus_Bacteroides', 'genus_Barnesiella', 'genus_Bilophila', 'genus_Blautia', 'genus_Butyricicoccus', 'genus_Butyricimonas', 'genus_Clostridium.IV', 'genus_Clostridium.XI', 'genus_Clostridium.XVIII', 'genus_Clostridium.XlVa', 'genus_Clostridium.XlVb', 'genus_Clostridium.sensu.stricto', 'genus_Collinsella', 'genus_Coprococcus', 'genus_Dorea', 'genus_Eggerthella', 'genus_Erysipelotrichaceae_incertae_sedis', 'genus_Faecalibacterium', 'genus_Flavonifractor', 'genus_Holdemania', 'genus_Lachnospiracea_incertae_sedis', 'genus_Odoribacter', 'genus_Oscillibacter', 'genus_Parabacteroides', 'genus_Parasutterella', 'genus_Phascolarctobacterium', 'genus_Prevotella', 'genus_Pseudoflavonifractor', 'genus_Roseburia', 'genus_Ruminococcus', 'genus_Streptococcus', 'genus_Veillonella', 'genus_unclassified_Bacteria', 'genus_unclassified_Clostridiales', 'genus_unclassified_Clostridiales_Incertae.Sedis.XIII', 'genus_unclassified_Coriobacteriaceae', 'genus_unclassified_Erysipelotrichaceae', 'genus_unclassified_Firmicutes', 'genus_unclassified_Lachnospiraceae', 'genus_unclassified_Porphyromonadaceae', 'genus_unclassified_Ruminococcaceae']
+#pd.set_option("display.max_rows", None, "display.max_columns", None)
 
-phylum_df = pd.read_csv ("gut_16s_abundance.csv", usecols = phylum_coList)
-class_df = pd.read_csv ("gut_16s_abundance.csv", usecols = class_coList)
-order_df = pd.read_csv ("gut_16s_abundance.csv", usecols = order_coList)
-family_df = pd.read_csv ("gut_16s_abundance.csv", usecols = family_coList)
-genus_df = pd.read_csv ("gut_16s_abundance.csv", usecols = genus_coList)
 
-#correlation test for each data frame
-print(phylum_df.corr(method = 'pearson'))
-print(class_df.corr(method = 'pearson'))
-print(order_df.corr(method = 'pearson'))
-print(family_df.corr(method = 'pearson'))
-print(genus_df.corr(method = 'pearson'))
+###############################################################################
+# Constants
+###############################################################################
+PHYLUM_CO_LIST = [
+    "phylum_Actinobacteria",
+    "phylum_Bacteroidetes",
+    "phylum_Firmicutes",
+    "phylum_Proteobacteria",
+    "phylum_Verrucomicrobia",
+    "phylum_unclassified_Bacteria",
+]
+CLASS_CO_LIST = [
+    "class_Actinobacteria",
+    "class_Bacilli",
+    "class_Bacteroidia",
+    "class_Betaproteobacteria",
+    "class_Clostridia",
+    "class_Deltaproteobacteria",
+    "class_Erysipelotrichia",
+    "class_Gammaproteobacteria",
+    "class_Negativicutes",
+    "class_Verrucomicrobiae",
+    "class_unclassified_Bacteria",
+    "class_unclassified_Firmicutes",
+]
+ORDER_CO_LIST = [
+    "order_Bacteroidales",
+    "order_Burkholderiales",
+    "order_Clostridiales",
+    "order_Coriobacteriales",
+    "order_Desulfovibrionales",
+    "order_Enterobacteriales",
+    "order_Erysipelotrichales",
+    "order_Lactobacillales",
+    "order_Selenomonadales",
+    "order_Verrucomicrobiales",
+    "order_unclassified_Bacteria",
+    "order_unclassified_Firmicutes",
+]
+FAMILY_CO_LIST = [
+    "family_Acidaminococcaceae",
+    "family_Bacteroidaceae",
+    "family_Clostridiaceae.1",
+    "family_Clostridiales_Incertae.Sedis.XIII",
+    "family_Coriobacteriaceae",
+    "family_Desulfovibrionaceae",
+    "family_Enterobacteriaceae",
+    "family_Erysipelotrichaceae",
+    "family_Lachnospiraceae",
+    "family_Peptostreptococcaceae",
+    "family_Porphyromonadaceae",
+    "family_Prevotellaceae",
+    "family_Rikenellaceae",
+    "family_Ruminococcaceae",
+    "family_Streptococcaceae",
+    "family_Sutterellaceae",
+    "family_Veillonellaceae",
+    "family_Verrucomicrobiaceae",
+    "family_unclassified_Bacteria",
+    "family_unclassified_Clostridiales",
+    "family_unclassified_Firmicutes",
+]
+GENUS_CO_LIST = [
+    "genus_Akkermansia",
+    "genus_Alistipes",
+    "genus_Anaerotruncus",
+    "genus_Anaerovorax",
+    "genus_Bacteroides",
+    "genus_Barnesiella",
+    "genus_Bilophila",
+    "genus_Blautia",
+    "genus_Butyricicoccus",
+    "genus_Butyricimonas",
+    "genus_Clostridium.IV",
+    "genus_Clostridium.XI",
+    "genus_Clostridium.XVIII",
+    "genus_Clostridium.XlVa",
+    "genus_Clostridium.XlVb",
+    "genus_Clostridium.sensu.stricto",
+    "genus_Collinsella",
+    "genus_Coprococcus",
+    "genus_Dorea",
+    "genus_Eggerthella",
+    "genus_Erysipelotrichaceae_incertae_sedis",
+    "genus_Faecalibacterium",
+    "genus_Flavonifractor",
+    "genus_Holdemania",
+    "genus_Lachnospiracea_incertae_sedis",
+    "genus_Odoribacter",
+    "genus_Oscillibacter",
+    "genus_Parabacteroides",
+    "genus_Parasutterella",
+    "genus_Phascolarctobacterium",
+    "genus_Prevotella",
+    "genus_Pseudoflavonifractor",
+    "genus_Roseburia",
+    "genus_Ruminococcus",
+    "genus_Streptococcus",
+    "genus_Veillonella",
+    "genus_unclassified_Bacteria",
+    "genus_unclassified_Clostridiales",
+    "genus_unclassified_Clostridiales_Incertae.Sedis.XIII",
+    "genus_unclassified_Coriobacteriaceae",
+    "genus_unclassified_Erysipelotrichaceae",
+    "genus_unclassified_Firmicutes",
+    "genus_unclassified_Lachnospiraceae",
+    "genus_unclassified_Porphyromonadaceae",
+    "genus_unclassified_Ruminococcaceae",
+]
+CORR_COLUMS=["X1","X2","Correlation"]
+CORR_METHOD = "pearson"
+INPUT = "/app/data/gut_16s_abundance.csv"
+###############################################################################
+# Functions
+###############################################################################
+
+
+def main():
+
+    # Create Dataframes
+    phylum_df = pd.read_csv(INPUT, usecols=PHYLUM_CO_LIST)
+    class_df = pd.read_csv(INPUT, usecols=CLASS_CO_LIST)
+    order_df = pd.read_csv(INPUT, usecols=ORDER_CO_LIST)
+    family_df = pd.read_csv(INPUT, usecols=FAMILY_CO_LIST)
+    genus_df = pd.read_csv(INPUT, usecols=GENUS_CO_LIST)
+
+    df_list = [phylum_df, class_df, order_df, family_df, genus_df]
+
+    for df in df_list:
+        print(df.shape)
+
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.pearsonr.html 
+
+    # Length of the dataframe, since the source is the same for each dataframe the number of rows is the same
+    n = phylum_df.shape[0]
+
+    dist = scipy.stats.beta(n/2 - 1, n/2 - 1, loc=-1, scale=2)
+
+    # Test value to verify
+    # print(scipy.stats.pearsonr(phylum_df['phylum_Actinobacteria'].tolist(),phylum_df['phylum_Bacteroidetes'].tolist()))
+
+
+    print(n)
+    # Correlation test for each data frame
+    for df in df_list:
+        df_corr = df.corr(method=CORR_METHOD).stack().reset_index()
+
+        # Use to name columns in new dataframe
+        df_corr.columns = CORR_COLUMS
+
+        # P value formaula from documentation in scipy
+        df_corr['p_value'] = 2*dist.cdf(-abs(df_corr['Correlation']))
+
+        # Adjusted P value
+        df_corr['adjusted_p_value'] = statsmodels.stats.multitest.multipletests(df_corr['p_value'], alpha=0.05, method='bonferroni', is_sorted=False, returnsorted=False)
+
+        print(df_corr)
+
+
+if __name__ == "__main__":
+    main()

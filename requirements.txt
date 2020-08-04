@@ -1,0 +1,5 @@
+# Project Dependencies
+numpy
+pandas
+scipy
+statsmodels
