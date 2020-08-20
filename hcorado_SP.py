@@ -139,6 +139,7 @@ def main():
     genus_df = pd.read_csv(INPUT, usecols=GENUS_CO_LIST)
 
     df_list = [phylum_df, class_df, order_df, family_df, genus_df]
+    csv_names = ['phylum.csv', 'class.csv', 'order.csv', 'family.csv', 'genus.csv']
 
     for df in df_list:
         print(df.shape)
@@ -153,10 +154,11 @@ def main():
     # Test value to verify
     # print(scipy.stats.pearsonr(phylum_df['phylum_Actinobacteria'].tolist(),phylum_df['phylum_Bacteroidetes'].tolist()))
 
-
     print(n)
+
     # Correlation test for each data frame
     for df in df_list:
+        index = 0
         df_corr = df.corr(method=CORR_METHOD).stack().reset_index()
 
         # Use to name columns in new dataframe
@@ -168,12 +170,15 @@ def main():
         # Adjusted P value and Rejection (true for hypothesis that can be rejected for given alpha)
         adjusted_pvalue = []
         adjusted_pvalue = statsmodels.stats.multitest.multipletests(df_corr['P_Value'], alpha=0.05, method='bonferroni', is_sorted=False, returnsorted=False)
-        
+
         df_corr['Adjusted_P_Value'] = adjusted_pvalue[1]
         df_corr['Rejection'] = adjusted_pvalue[0]
 
-        print(df_corr)
+        reject_true = df_corr['Rejection'] == True
+        df_corr_true = df_corr[reject_true]
 
+        df_corr_true.to_csv(csv_names[index])
+        index = index + 1
 
 if __name__ == "__main__":
     main()
