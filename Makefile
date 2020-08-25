@@ -15,4 +15,4 @@ build:
 	.
 
 run: build
-	@docker run -it $(IMAGE) python hcorado_SP.py
+	@docker run -it -v "C:\Users\admin\Dropbox\Bioinformatics\Senior Project\data":/app/data $(IMAGE) python hcorado_SP.py

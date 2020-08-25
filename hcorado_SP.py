@@ -4,7 +4,7 @@ import statsmodels.stats.multitest
 import pandas as pd
 import numpy as np
 
-
+from igraph import *
 ###############################################################################
 # Set Pandas options
 ###############################################################################
@@ -139,7 +139,11 @@ def main():
     genus_df = pd.read_csv(INPUT, usecols=GENUS_CO_LIST)
 
     df_list = [phylum_df, class_df, order_df, family_df, genus_df]
-    csv_names = ['phylum.csv', 'class.csv', 'order.csv', 'family.csv', 'genus.csv']
+
+    csv_fileNames = ['phylum.csv', 'class.csv', 'order.csv', 'family.csv', 'genus.csv']
+    csv_headerNames = ["X1", "X2", "Correlation"]
+
+    image_names = ["prediabetic_phylum.png", "prediabetic_class.png", "prediabetic_order.png", "prediabetic_family.png", "prediabetic_genus.png"]
 
     for df in df_list:
         print(df.shape)
@@ -157,8 +161,8 @@ def main():
     print(n)
 
     # Correlation test for each data frame
+    index = 0
     for df in df_list:
-        index = 0
         df_corr = df.corr(method=CORR_METHOD).stack().reset_index()
 
         # Use to name columns in new dataframe
@@ -177,7 +181,23 @@ def main():
         reject_true = df_corr['Rejection'] == True
         df_corr_true = df_corr[reject_true]
 
-        df_corr_true.to_csv(csv_names[index])
+        df_corr_true.to_csv(str(csv_fileNames[index]), columns=csv_headerNames, index=False, sep='\t', header=None)
+
+        g = Graph.Read_Ncol(str(csv_fileNames[index]), directed=False)
+        print(g)
+        print(g.summary())
+        print(g.betweenness())
+        print(g.edge_betweenness())
+        print(g.omega())
+        print(g.clusters())
+        print(g.diameter())
+        #print(g.cliques())
+        print(g.transitivity_undirected())
+
+        layout = g.layout("kk")
+        g.vs["label"] = g.vs["name"]
+        plot(g, image_names[index], layout = layout, bbox = (2560, 1440), margin = 20)
+
         index = index + 1
 
 if __name__ == "__main__":

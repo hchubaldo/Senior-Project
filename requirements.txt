@@ -3,3 +3,6 @@ numpy
 pandas
 scipy
 statsmodels
+python-igraph
+pkgconfig
+pycairo
