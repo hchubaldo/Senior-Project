@@ -254,11 +254,15 @@ def main():
         print("\nTransitivity Undirected\n")
         print(g.transitivity_undirected())
 
+        # This section is commented out due to issues that I am trying to resolve. Images for the networks have
+        # provided in the GitHub repo.
+        """
         layout = g.layout("kk")
         g.vs["label"] = g.vs["name"]
         plot(g, image_names[index], layout = layout, bbox = (2560, 1440), margin = 20)
 
         index = index + 1
-
+        """
+        
 if __name__ == "__main__":
     main()
